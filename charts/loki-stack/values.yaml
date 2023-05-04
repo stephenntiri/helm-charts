@@ -29,6 +29,23 @@ promtail:
     serverPort: 3101
     clients:
       - url: http://{{ .Release.Name }}:3100/loki/api/v1/push
+    scrape_configs:
+    - job_name: varlogs
+      pipeline_stages:
+      - regex:
+          expression: '^(?P<time>[^ ]* [^ ]*) (?P<severity>[^ ]*) (?P<component>[^ ]*): (?P<message>.*)$'
+      static_configs:
+      - targets:
+          - node-exporter:9100
+        labels:
+          job: node
+          __path__: /host/var/log/messages
+          __hostname__: kubemaster.internal
+
+    positions:
+    - filename: /var/log/messages
+      start_position: beginning
+  
 
 fluent-bit:
   enabled: false
